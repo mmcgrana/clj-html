@@ -1,5 +1,5 @@
-(ns test.com.mmcgrana.html
-  (:use [com.mmcgrana.html :only (html map-str domap-str)]))
+(ns test.clj-html.core-test
+  (:use [clj-html.core :only (html map-str domap-str)]))
 
 (defmacro test-html
   [expected-html & forms]

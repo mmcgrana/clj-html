@@ -1,7 +1,7 @@
-(ns com.mmcgrana.html
+(ns clj-html.core
   (:use [clojure.contrib.def :only (defvar- defmacro-)]
         [clojure.contrib.pred :only (atom?)])
-  (:load "html-util"))
+  (:load "core_util"))
 
 (defvar- tag+-lexer
   (let [word  "([^\\s\\.#]+)"]
