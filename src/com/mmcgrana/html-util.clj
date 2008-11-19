@@ -1,4 +1,4 @@
-(defmacro- if2 
+(defmacro- if2
   "2 x 2 if."
   [a-test b-test a-b a-not-b not-a-b not-a-not-b]
   `(if ~a-test
@@ -10,7 +10,7 @@
         ~not-a-not-b)))
 
 (defn- separate-map
-  "Returns two maps, the first for which the entires satisfy (f entry), the 
+  "Returns two maps, the first for which the entires satisfy (f entry), the
   second for which the entries do not. The type of the returned maps will
   be the same as the given map."
   [f h]
@@ -32,5 +32,5 @@
   Uses doseq syntax."
   [[binding-form list] & body]
   `(apply str (map (fn [~binding-form] ~@body) ~list)))
-  
+
 
