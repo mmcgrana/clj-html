@@ -1,0 +1,136 @@
+h2. clj-html
+
+*Fast HTML templates in Clojure*
+
+h3. Overview
+
+A Clojure library for expanding expressive markup templates into efficient code,
+drawing on the functional interface and markup syntax of "compojure's html 
+library":http://github.com/weavejester/compojure/tree/master and the compilation
+ approach of "cl-who":http://www.weitz.de/cl-who/.
+
+h3. Examples
+
+A simple template:
+<pre><code>
+(html
+  [:body [:div#content "Hello World"]])
+
+; expands to:
+(let* [html-builder (StringBuilder.)] 
+  (.append html-builder "<body><div id=\"content\">Hello World</div></body>") 
+  (.toString html-builder))
+
+;evaluates to:
+"<body><div id=\"content\">Hello World</div></body>"
+</code></pre>
+
+A template with non-literal values:
+<code><pre>
+(html
+  [:body
+    [:div#content
+      [:h1.greeting greeting]
+      [:p.message message]]]))
+      
+; expands to:
+(let* [html-builder (StringBuilder.)] 
+  (.append html-builder "<body><div id=\"content\"><h1 class=\"greeting\">") 
+  (if-let [content__148 greeting] (.append html-builder content__148)) 
+  (.append html-builder "</h1><p class=\"message\">") 
+  (if-let [content__148 message] (.append html-builder content__148)) 
+  (.append html-builder "</p></div></body>") 
+  (.toString html-builder))
+
+; evaluates to (with greeting bound to "Hello" and message to "from clj-html"):
+"<body><div id=\"content\"> \
+ <h1 class=\"greeting\">Hello</h1> \
+ <p class=\"message\">from clj-html</p> \
+ </div></body>"
+ </code></pre>
+
+A more involved template:
+<pre><code>
+(html
+  [:body
+    [:div#examples
+      [:p.string "foo"]
+      [:p.literal 3]
+      [:p.expression (str "clj" "-" "html")]
+      [:ul#sequence
+        (domap-str [char '(a b c)]
+          (html [:li char]))]]])
+
+; expansion omitted, evaluation as expected.
+</code></pre>
+
+h3. Details
+
+The library exposes public vars <code>html</code>, <code>map-str</code>, 
+and <code>domap-str</code>.
+
+The macro <code>html</code> expands into code that will render the given
+template, returning a string. <code>html</code> accepts a vararg list of forms,
+each of which will be expanded. The rules for expansion are:
+
+Any atom (string, number, etc.) or list (code) will be evaluated as-is. If it
+evaluates to <code>nil</code> then nothing is added to the html, otherwise the
+result is coerced to a string and added to the html output.
+
+A vector with a keyword as its first element will be treated as markup tag 
+syntax. A tag can use CSS syntax to declare id and/or classes
+(<code>:div#myid.myclass</code>). 
+
+The second element in the vector is an optional literal map of additional
+attributes to add to the tag 
+(<code>[:link {:rel "stylesheet" :href "style.css"}]</code>). The keys must be 
+literal keywords, though the values can be either literal values or expressions 
+to be computed during evaluation. If the value for a key is <code>nil</code> or 
+<code>false</code>, no text is added for that key/value pair. If the value is 
+<code>true</code> then the <code>"attrname=\"attrname\""</code> convention
+is used.
+
+The remanning values in the tag vector are considered the inner content of the 
+tag and are expanded recursively.
+
+If no inner forms are given (<code>[:br]</code>]) then the tag that is created 
+is self-closing (<code><br /></code>). Otherwise a wrapping tag is created.
+
+<code>map-str</code> and <code>domap-str</code> are helper methods for 
+templates. The function <code>map-str</code>[1] is the usual <code>map</code> 
+with a call to <code>(apply str</code> in front. This is useful for rendering a 
+sub-template for each element of a collection:
+
+<pre><code>
+(defn person-template [person]
+  (html
+    [:div.person {:id (:id person)}
+      [:p.name (:name person)]
+      [:p.city (:city person)]]))
+
+(html
+  [:div#people
+    (map-str person-template people)])
+</code></pre> 
+
+The macro <code>domap-str</code> is useful for rendering an inline snippet for 
+each element of a collection. <code>domap-str</code> has semantics like 
+<code>map-str</code> and a syntax like <code>doseq</code>. Note that since the 
+<code>html</code> macro does not reach within code, if you need to use the 
+literal vector syntax within a <code>domap-str</code> body you will need to use 
+<code>html</code> again.
+
+<pre><code>
+(html
+  [:div#people
+    (domap-str [person people]
+      (html [:div.person {:id (:uid person)}
+              [:p.name (:name person)]
+              [:p.city (:city person)]]))])
+</code></pre>
+
+h3. Dependencies
+
+Include recent versions of Clojure and Clojure Contrib in your classpath.
+
+fn1. <code>map-str</code> and <code>domap-str</code> are inspired by <code>str-map</code> and <code>domap</code> in compojure.
