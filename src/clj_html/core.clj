@@ -37,8 +37,9 @@
     (reduce
       (fn [#^StringBuilder builder [key val]]
         (if val
-          (doto builder (append " ") (append (name key)) (append "=\"")
-                        (append (if (= val true) (name key) val)) (append "\""))
+          (doto builder (.append " ") (.append (name key)) (.append "=\"")
+                        (.append (if (= val true) (name key) val))
+                        (.append "\""))
           builder))
       (StringBuilder.)
       attrs)))
