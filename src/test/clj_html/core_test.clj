@@ -18,6 +18,10 @@
   [:br#foo.bar])
 
 (test-html
+  "<br class=\"foo bar bat\" />"
+  [:br.foo.bar.bat])
+
+(test-html
   "<br id=\"foo\" class=\"bar\" />"
   [:br#foo {:class (str "b" "ar")}])
 

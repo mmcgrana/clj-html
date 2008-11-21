@@ -1,22 +1,21 @@
 (ns clj-html.core
-  (:use [clojure.contrib.def :only (defvar- defmacro-)]
-        [clojure.contrib.pred :only (atom?)])
+  (:use [clojure.contrib.def       :only (defvar- defmacro-)]
+        [clojure.contrib.pred      :only (atom?)]
+        [clojure.contrib.str-utils :only (re-gsub)])
   (:load "core_util"))
 
-(defvar- tag+-lexer
-  (let [word  "([^\\s\\.#]+)"]
-    (re-pattern (str word "(?:#" word ")?" "(?:\\." word ")?")))
+(defvar- tag+-lexer #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?"
   "Lexer for parsing ids and classes out of tag+s")
 
 (defn- parse-tag+-attrs
   "Returns a [tag-str tag-attrs] vector containing the tag String and attrs Map
   parsed out of the given tag+ string."
   [tag+]
-  (let [[match tag-str id class] (re-matches tag+-lexer tag+)
-        tag-attrs (if2 id class
-                    {:id id :class class}
+  (let [[match tag-str id doted-classes] (re-matches tag+-lexer tag+)
+        tag-attrs (if2 id doted-classes
+                    {:id id :class (re-gsub #"\." " " doted-classes)}
                     {:id id}
-                    {:class class}
+                    {:class (re-gsub #"\." " " doted-classes)}
                     {})]
     [tag-str tag-attrs]))
 
