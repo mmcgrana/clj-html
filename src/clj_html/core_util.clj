@@ -1,3 +1,5 @@
+(in-ns 'clj-html.core)
+
 (defmacro- if2
   "2 x 2 if."
   [a-test b-test a-b a-not-b not-a-b not-a-not-b]
