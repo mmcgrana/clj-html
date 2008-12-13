@@ -1,6 +1,5 @@
 (ns clj-html.core
   (:use [clojure.contrib.def       :only (defvar- defmacro-)]
-        [clojure.contrib.pred      :only (atom?)]
         [clojure.contrib.str-utils :only (re-gsub)])
   (:load "core_util"))
 
@@ -98,7 +97,7 @@
 (defn- expand-tree [tree]
   "Returns a flat list of forms to evaualte and append to render a tree."
   (cond
-    (or (atom? tree) (list? tree))
+    (or (not (coll? tree)) (list? tree))
       (list tree)
     (and (vector? tree) (keyword? (first tree)))
       (expand-tag+-tree tree)
