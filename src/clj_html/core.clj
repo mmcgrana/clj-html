@@ -1,6 +1,7 @@
 (ns clj-html.core
   (:use [clojure.contrib.def       :only (defvar- defmacro-)]
-        [clojure.contrib.str-utils :only (re-gsub)])
+        [clojure.contrib.str-utils :only (re-gsub)]
+        [clojure.contrib.except    :only (throwf)])
   (:load "core_util"))
 
 (defvar- tag+-lexer #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?"
@@ -102,7 +103,7 @@
     (and (vector? tree) (keyword? (first tree)))
       (expand-tag+-tree tree)
     :else
-      (throw (Exception. (str "Unrecognized form " tree)))))
+      (throwf "Unrecognized form %s" tree)))
 
 (defn- coalesce-strings
   "Returns a seq of forms corresponding to the given seq but with adjacenct
