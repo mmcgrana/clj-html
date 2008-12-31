@@ -104,4 +104,12 @@
       (html [:p ch]))
     [:p 'd]])
 
+(defmacro macro-test-helper
+  [form]
+  `(html (.toUpperCase ~form)))
+
+(test-html
+  "INNER"
+  (macro-test-helper "inner"))
+
 (println " done")

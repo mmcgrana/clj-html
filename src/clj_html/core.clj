@@ -98,7 +98,7 @@
 (defn- expand-tree [tree]
   "Returns a flat list of forms to evaualte and append to render a tree."
   (cond
-    (or (not (coll? tree)) (list? tree))
+    (or (not (coll? tree)) (list? tree) (instance? clojure.lang.LazyCons tree))
       (list tree)
     (and (vector? tree) (keyword? (first tree)))
       (expand-tag+-tree tree)
