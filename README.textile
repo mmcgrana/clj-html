@@ -133,4 +133,8 @@ h3. Dependencies
 
 Include recent versions of Clojure and Clojure Contrib in your classpath.
 
-fn1. <code>map-str</code> and <code>domap-str</code> are inspired by <code>str-map</code> and <code>domap</code> in compojure.
+fn1. <code>map-str</code> and <code>domap-str</code> are inspired by <code>str-map</code> and <code>domap</code> in Compojure.
+
+---
+
+Copyright 2009 Mark McGranaghan and released under an MIT license.
