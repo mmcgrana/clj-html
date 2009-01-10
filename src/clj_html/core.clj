@@ -136,3 +136,52 @@
   `(let [~html-builder-sym (StringBuilder.)]
      ~@(map append-code (compact (coalesce-strings (mapcat expand-tree trees))))
      (.toString ~html-builder-sym)))
+
+
+
+;; Experimental HTML interpreter
+
+(defn- closing-tag+
+  "Returns an html snippet of a self-closing tag acording to the given tag+
+  String and the optionally given attrs Map (which need not be sorted)."
+  [tag+ attrs]
+  (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
+    (str "<" tag (attrs-props (merge tag-attrs attrs)) " />")))
+
+(defn- wrapping-tag+
+  "Returns an html snippet of a self-closing tag acording to the given tag+
+  String, inner content String, and optionally the given attrs Map (which need
+  not be sorted)."
+  [tag+ attrs inner]
+  (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
+    (str "<" tag (attrs-props (merge tag-attrs attrs)) ">" inner "</" tag ">")))
+
+(defvar- html-trees)
+
+(defn- html-tree
+  "Returns a snippet of html corresponding to the given tree."
+  [tree]
+  (if (vector? tree)
+    (let [tree-seq    (seq tree)
+          tag+        (name (first tree-seq))
+          tree-rest   (rest tree-seq)
+          maybe-attrs (first tree-rest)]
+      (if (nil? maybe-attrs)
+        (closing-tag+ tag+ {})
+        (if (map? maybe-attrs)
+          (if-let [body (rest tree-rest)]
+            (wrapping-tag+ tag+ maybe-attrs (html-trees body))
+            (closing-tag+ tag+ maybe-attrs))
+          (wrapping-tag+ tag+ {} (html-trees tree-rest)))))
+    (str tree)))
+
+(defn- html-trees
+  "Returns a snippet of html corresponding to the given trees, for which
+  we flatten sequences 1 level deep to allow for easy domap rendering."
+  [trees]
+  (apply str (map html-tree (flatten1 trees))))
+
+(defn htmli
+  "Returns a string corresponding to the rendered trees."
+  [& trees]
+  (html-trees trees))

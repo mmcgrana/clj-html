@@ -1,5 +1,5 @@
 (ns test.clj-html.core-test
-  (:use [clj-html.core :only (html map-str domap-str)]))
+  (:use [clj-html.core :only (html htmli map-str domap-str)]))
 
 (defmacro test-html
   [expected-html & forms]

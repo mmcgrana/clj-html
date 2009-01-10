@@ -36,3 +36,13 @@
   `(apply str (map (fn [~binding-form] ~@body) ~list)))
 
 
+;; Support for Experimental HTML interpreter
+(defn- flatten1
+  "Returns a seq for coll that has been flattened 1 level deep."
+  [coll]
+  (if-let [coll-seq (seq coll)]
+    (if (seq? (first coll-seq))
+      (lazy-cat  (first coll-seq) (flatten1 (rest coll-seq)))
+      (lazy-cons (first coll-seq) (flatten1 (rest coll-seq))))))
+
+
