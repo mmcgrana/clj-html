@@ -2,7 +2,9 @@
   (:use [clojure.contrib.def       :only (defvar- defmacro-)]
         [clojure.contrib.str-utils :only (re-gsub)]
         [clojure.contrib.except    :only (throwf)])
-  (:load "core_util"))
+  (:load "core_utils"))
+
+;; Shared by the Compiler and Interpreter
 
 (defvar- tag+-lexer #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?"
   "Lexer for parsing ids and classes out of tag+s")
@@ -19,14 +21,6 @@
                     {})]
     [tag-str tag-attrs]))
 
-(defn- literal?
-  "Returns true if the given form is an atomic compile-time literal."
-  [form]
-  (or (string? form)
-      (keyword? form)
-      (number? form)
-      (contains? #{nil false true} form)))
-
 (defn attrs-props
   "Returns the key=\"value\" string corresponding to the given attrs seq-able,
   which should yield key, value pairs. Does not add text for pairs in which the
@@ -42,6 +36,16 @@
           builder))
       (StringBuilder.)
       attrs)))
+
+;; Compiler
+
+(defn- literal?
+  "Returns true if the given form is an atomic compile-time literal."
+  [form]
+  (or (string? form)
+      (keyword? form)
+      (number? form)
+      (contains? #{nil false true} form)))
 
 (defn- prepare-tag+-info
   "Returns a tuple of [tag lit-attrs-str sorted-dyn-attrs] corresponding to the
@@ -138,15 +142,20 @@
      (.toString ~html-builder-sym)))
 
 
+;; Interpreter
 
-;; Experimental HTML interpreter
+(defn- merge-attrs
+  "Combine the tag-attrs and attrs by sorting the merged pairs by name so
+  that the output is deterministic."
+  [tag-attrs attrs]
+  (sort-by first (merge tag-attrs attrs)))
 
 (defn- closing-tag+
   "Returns an html snippet of a self-closing tag acording to the given tag+
   String and the optionally given attrs Map (which need not be sorted)."
   [tag+ attrs]
   (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
-    (str "<" tag (attrs-props (merge tag-attrs attrs)) " />")))
+    (str "<" tag (attrs-props (merge-attrs tag-attrs attrs)) " />")))
 
 (defn- wrapping-tag+
   "Returns an html snippet of a self-closing tag acording to the given tag+
@@ -154,7 +163,8 @@
   not be sorted)."
   [tag+ attrs inner]
   (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
-    (str "<" tag (attrs-props (merge tag-attrs attrs)) ">" inner "</" tag ">")))
+    (str "<" tag (attrs-props (merge-attrs tag-attrs attrs)) ">"
+         inner "</" tag ">")))
 
 (defvar- html-trees)
 
@@ -177,7 +187,7 @@
 
 (defn- html-trees
   "Returns a snippet of html corresponding to the given trees, for which
-  we flatten sequences 1 level deep to allow for easy domap rendering."
+  we flatten sequences 1 level deep to allow for easy loop rendering."
   [trees]
   (apply str (map html-tree (flatten1 trees))))
 

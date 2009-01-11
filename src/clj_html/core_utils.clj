@@ -24,19 +24,6 @@
   [coll]
   (filter #(not (= % nil)) coll))
 
-(defn map-str
-  "Like the usual map, but joins the resulting seq of strings together."
-  [f coll]
-  (apply str (map f coll)))
-
-(defmacro domap-str
-  "Map a collection to strings and return the concatination of those strings.
-  Uses doseq syntax."
-  [[binding-form list] & body]
-  `(apply str (map (fn [~binding-form] ~@body) ~list)))
-
-
-;; Support for Experimental HTML interpreter
 (defn- flatten1
   "Returns a seq for coll that has been flattened 1 level deep."
   [coll]
@@ -44,5 +31,3 @@
     (if (seq? (first coll-seq))
       (lazy-cat  (first coll-seq) (flatten1 (rest coll-seq)))
       (lazy-cons (first coll-seq) (flatten1 (rest coll-seq))))))
-
-

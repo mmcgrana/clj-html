@@ -64,42 +64,29 @@ A more involved template:
 ; expansion omitted, evaluation as expected.
 </code></pre>
 
-h3. Details
+h3. Details - Core
 
-The library exposes public vars <code>html</code>, <code>map-str</code>, 
-and <code>domap-str</code>.
+The primary entry point into the @clj-html.core@ library is the macro @html@, which expands into code that will render the given template, returning a string. @html@ accepts a vararg list of forms,each of which will be expanded according to the following rules:
 
-The macro <code>html</code> expands into code that will render the given
-template, returning a string. <code>html</code> accepts a vararg list of forms,
-each of which will be expanded. The rules for expansion are:
+Any atom (string, number, etc.) or list (code) will be evaluated as-is. If it logically false then nothing is added to the html, otherwise the result is coerced to a string and added to the html output.
 
-Any atom (string, number, etc.) or list (code) will be evaluated as-is. If it
-evaluates to <code>nil</code> then nothing is added to the html, otherwise the
-result is coerced to a string and added to the html output.
+A vector with a keyword as its first element will be treated as markup tag  syntax. A tag can use CSS syntax to declare id and/or classes (@:div#myid.myclass@). 
 
-A vector with a keyword as its first element will be treated as markup tag 
-syntax. A tag can use CSS syntax to declare id and/or classes
-(<code>:div#myid.myclass</code>). 
+The second element in the vector is an optional literal map of additional attributes to add to the tag (@[:link {:rel "stylesheet" :href "style.css"}]@). The keys must be literal keywords, though the values can be either literal values or expressions to be computed during evaluation. If the value for a key is logically false, no text is added for that key/value pair. If the value is  equal to @true@ then the @"attrname=\"attrname\""@ convention is used.
 
-The second element in the vector is an optional literal map of additional
-attributes to add to the tag 
-(<code>[:link {:rel "stylesheet" :href "style.css"}]</code>). The keys must be 
-literal keywords, though the values can be either literal values or expressions 
-to be computed during evaluation. If the value for a key is <code>nil</code> or 
-<code>false</code>, no text is added for that key/value pair. If the value is 
-<code>true</code> then the <code>"attrname=\"attrname\""</code> convention
-is used.
-
-The remanning values in the tag vector are considered the inner content of the 
+The remaining values in the tag vector are considered the inner content of the 
 tag and are expanded recursively.
 
-If no inner forms are given (<code>[:br]</code>]) then the tag that is created 
-is self-closing (<code><br /></code>). Otherwise a wrapping tag is created.
+If no inner forms are given (@[:br]@]) then the tag that is created 
+is self-closing (@<br />@). Otherwise a wrapping tag is created.
 
-<code>map-str</code> and <code>domap-str</code> are helper methods for 
-templates. The function <code>map-str</code>[1] is the usual <code>map</code> 
-with a call to <code>(apply str</code> in front. This is useful for rendering a 
-sub-template for each element of a collection:
+@clj-html.core@ also includes the @htmli@, accepts very similar arguments to @html@ but operates as an interpreter instead of a compiler.  For a discussion of the tradeoffs between these two, see "this Gist":http://gist.github.com/45136.
+
+h3. Details - Utils
+
+@clj-html.utils@ provides general helper methods that are useful for a variety of templating tasks, mostly for use with the @html@ macro.
+
+The function @map-str@ is the usual @map@ with a call to @(apply str ...)@ in front. This is useful for rendering a sub-template for each element of a collection:
 
 <pre><code>
 (defn person-template [person]
@@ -113,12 +100,12 @@ sub-template for each element of a collection:
     (map-str person-template people)])
 </code></pre> 
 
-The macro <code>domap-str</code> is useful for rendering an inline snippet for 
-each element of a collection. <code>domap-str</code> has semantics like 
-<code>map-str</code> and a syntax like <code>doseq</code>. Note that since the 
-<code>html</code> macro does not reach within code, if you need to use the 
-literal vector syntax within a <code>domap-str</code> body you will need to use 
-<code>html</code> again.
+The macro @domap-str@ is useful for rendering an inline snippet for 
+each element of a collection. @domap-str@ has semantics like 
+@map-str@ and a syntax like @doseq@. Note that since the 
+@html@ macro does not reach within code, if you need to use the 
+literal vector syntax within a @domap-str@ body you will need to use 
+@html@ again.
 
 <pre><code>
 (html
@@ -129,11 +116,36 @@ literal vector syntax within a <code>domap-str</code> body you will need to use
               [:p.city (:city person)]]))])
 </code></pre>
 
+Also included are several methods of the form @*-html*@. These are designed to reduce the need for eg:
+<pre><code>
+(html
+  [:div
+    (when urgent 
+      (html
+        [:h3 "Urgent!"]))])
+
+; with when-html becomes
+(html
+  [:div
+    (when-html urgent
+      [:h3 "Urgent!"])])
+</code></pre>
+
+Currently we have @when@ and @when-html@.
+
+Finally, you can use @defhtml@ to define methods that are html templates without needing to include the outer @html@ manually:
+
+<pre><code>
+(defhtml message [text]
+  [:div#message
+    [:p.text text]])
+</code></pre>
+
 h3. Dependencies
 
 Include recent versions of Clojure and Clojure Contrib in your classpath.
 
-fn1. <code>map-str</code> and <code>domap-str</code> are inspired by <code>str-map</code> and <code>domap</code> in Compojure.
+The test suite uses @clj-unit@, though you won't need to use the library in general.
 
 ---
 
