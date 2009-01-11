@@ -18,8 +18,14 @@
   [name args & body]
   `(defn ~name ~args (html ~@body)))
 
+(defmacro if-html
+  [test if-body else-body]
+  `(if ~test
+     (html ~if-body)
+     (html ~else-body)))
+
 (defmacro when-html
-  "Like when, but apply the html macro to the boyd."
+  "Like when, but apply the html macro to the body."
   [test & body]
   `(when ~test (html ~@body)))
 

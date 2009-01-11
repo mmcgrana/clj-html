@@ -16,6 +16,10 @@
   (defhtml foo [inner] [:div {:num (+ 1 2)} inner])
   (assert= (foo "text") result))
 
+(deftest "if-html"
+  (assert= result (if-html true  [:div {:num (+ 1 2)} "text"] [:p "foo"]))
+  (assert= result (if-html false [:p "foo"] [:div {:num (+ 1 2)} "text"])))
+
 (deftest "when-let-html"
   (assert= result (when-let-html [inner "text"] [:div {:num (+ 1 2)} inner]))
   (assert-nil (when-let-html [inner false] [:div {:num (+ 1 2)} inner])))

@@ -131,7 +131,7 @@ Also included are several methods of the form @*-html*@. These are designed to r
       [:h3 "Urgent!"])])
 </code></pre>
 
-Currently we have @when@ and @when-html@.
+Currently we have @if-html@, @when-html@, and @when-html@.
 
 Finally, you can use @defhtml@ to define methods that are html templates without needing to include the outer @html@ manually:
 
