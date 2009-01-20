@@ -10,8 +10,8 @@
 (defmacro domap-str
   "Map a collection to strings and return the concatination of those strings.
   Uses the clojure.core/doseq syntax."
-  [[binding-form list] & body]
-  `(apply str (map (fn [~binding-form] ~@body) ~list)))
+  [[bind-sym list] & body]
+  `(apply str (map (fn [~bind-sym] ~@body) ~list)))
 
 (defmacro defhtml
   "Define a function that uses the html macro to render a template."
@@ -25,12 +25,19 @@
      (html ~else-body)))
 
 (defmacro when-html
-  "Like when, but apply the html macro to the body."
+  "Like when, but applying the html macro to the body."
   [test & body]
   `(when ~test (html ~@body)))
 
 (defmacro when-let-html
-  "Like when-let, but apply the html macro to the body."
-  [[bind-it test-exp] & body]
-  `(when-let [~bind-it ~test-exp]
+  "Like when-let, but applying the html macro to the body."
+  [[bind-sym test-exp] & body]
+  `(when-let [~bind-sym ~test-exp]
+     (html ~@body)))
+
+(defmacro for-html
+  "Like for, but applying the html macro to the body and concatonating the
+  resulting strings together"
+  [[bind-sym list] & body]
+  `(domap-str [~bind-sym ~list]
      (html ~@body)))

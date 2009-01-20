@@ -1,7 +1,5 @@
 <project name="clj-html" default="jar">
-  <description>
-    Pack all clj-html sources into a JAR.
-  </description>
+  <description> Pack all clj-html sources into a JAR. </description>
 
   <property name="jarfile" location="clj-html.jar"/>
 

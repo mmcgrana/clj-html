@@ -27,3 +27,7 @@
 (deftest "when-html"
   (assert= result (when-html true [:div {:num (+ 1 2)} "text"]))
   (assert-nil (when-html false [:div {:num (+ 1 2)} "text"])))
+
+(deftest "for-html"
+  (assert= "<p>a</p><p>b</p>"
+    (for-html [c '(a b)] [:p c])))
