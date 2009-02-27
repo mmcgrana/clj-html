@@ -27,7 +27,10 @@
 (defn- flatten1
   "Returns a seq for coll that has been flattened 1 level deep."
   [coll]
-  (if-let [coll-seq (seq coll)]
-    (if (seq? (first coll-seq))
-      (lazy-cat  (first coll-seq) (flatten1 (rest coll-seq)))
-      (lazy-cons (first coll-seq) (flatten1 (rest coll-seq))))))
+  (lazy-seq
+    (when-let [s (seq coll)]
+      (let [s-first (first s)
+            s-rest  (rest s)]
+        (if (seq? s-first)
+          (concat s-first (flatten1 s-rest))
+          (cons   s-first (flatten1 s-rest)))))))

@@ -89,8 +89,8 @@
   [tree]
   (let [tag+           (name (first tree))
         maybe-attrs    (second tree)
-        no-attrs-body  (rest tree)
-        yes-attrs-body (rrest tree)]
+        no-attrs-body  (next tree)
+        yes-attrs-body (next (next tree))]
     (if (map? maybe-attrs)
       (if (nil? yes-attrs-body)
         (expand-closing-tag+ tag+ maybe-attrs)
@@ -102,24 +102,25 @@
 (defn- expand-tree [tree]
   "Returns a flat list of forms to evaualte and append to render a tree."
   (cond
-    (or (not (coll? tree)) (list? tree) (instance? clojure.lang.LazyCons tree))
+    (or (not (coll? tree)) (list? tree) (instance? clojure.lang.Cons tree))
       (list tree)
     (and (vector? tree) (keyword? (first tree)))
       (expand-tag+-tree tree)
     :else
-      (throwf "Unrecognized form %s" tree)))
+      (throwf "Unrecognized form %s, was a %s" tree (class tree))))
 
 (defn- coalesce-strings
   "Returns a seq of forms corresponding to the given seq but with adjacenct
   strings concatenated together."
   [forms]
-  (when (seq forms)
-    (let [x (first forms)]
-      (if (string? x)
-        (lazy-cons (apply str (take-while string? forms))
-                   (coalesce-strings (drop-while string? forms)))
-        (lazy-cat (take-while (comp not string?) forms)
-                  (coalesce-strings (drop-while (comp not string?) forms)))))))
+  (lazy-seq
+    (when-let [s (seq forms)]
+      (let [x (first forms)]
+        (if (string? x)
+          (cons   (apply str (take-while string? s))
+                  (coalesce-strings (drop-while string? s)))
+          (concat (take-while (comp not string?) s)
+                  (coalesce-strings (drop-while (comp not string?) s))))))))
 
 (defvar- html-builder-sym 'html-builder
   "Symbol used for the local variable holding the StringBuilder that collects
@@ -174,12 +175,12 @@
   (if (vector? tree)
     (let [tree-seq    (seq tree)
           tag+        (name (first tree-seq))
-          tree-rest   (rest tree-seq)
+          tree-rest   (next tree-seq)
           maybe-attrs (first tree-rest)]
       (if (nil? maybe-attrs)
         (closing-tag+ tag+ {})
         (if (map? maybe-attrs)
-          (if-let [body (rest tree-rest)]
+          (if-let [body (next tree-rest)]
             (wrapping-tag+ tag+ maybe-attrs (html-trees body))
             (closing-tag+ tag+ maybe-attrs))
           (wrapping-tag+ tag+ {} (html-trees tree-rest)))))
