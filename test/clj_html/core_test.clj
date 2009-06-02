@@ -136,7 +136,7 @@
 
 (defmacro macro-test-helper
   [form]
-  `(html (.toUpperCase ~form)))
+  `(.toUpperCase ~form))
 
 (test-html
   "INNER"
