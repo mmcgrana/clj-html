@@ -28,6 +28,7 @@
   "Returns a seq for coll that has been flattened 1 level deep."
   [coll]
   (if-let [coll-seq (seq coll)]
-    (if (seq? (first coll-seq))
-      (lazy-cat  (first coll-seq) (flatten1 (rest coll-seq)))
-      (lazy-cons (first coll-seq) (flatten1 (rest coll-seq))))))
+    (lazy-seq
+      (if (seq? (first coll-seq))
+        (concat (first coll-seq) (flatten1 (rest coll-seq)))
+        (cons   (first coll-seq) (flatten1 (rest coll-seq)))))))
