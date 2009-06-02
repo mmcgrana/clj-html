@@ -90,7 +90,7 @@
   (let [tag+           (name (first tree))
         maybe-attrs    (second tree)
         no-attrs-body  (next tree)
-        yes-attrs-body (next (next tree))]
+        yes-attrs-body (nnext tree)]
     (if (map? maybe-attrs)
       (if (nil? yes-attrs-body)
         (expand-closing-tag+ tag+ maybe-attrs)
@@ -113,14 +113,14 @@
   "Returns a seq of forms corresponding to the given seq but with adjacenct
   strings concatenated together."
   [forms]
-  (lazy-seq
-    (when-let [s (seq forms)]
-      (let [x (first forms)]
+  (when (seq forms)
+    (let [x (first forms)]
+      (lazy-seq
         (if (string? x)
-          (cons   (apply str (take-while string? s))
-                  (coalesce-strings (drop-while string? s)))
-          (concat (take-while (comp not string?) s)
-                  (coalesce-strings (drop-while (comp not string?) s))))))))
+          (cons (apply str (take-while string? forms))
+                (coalesce-strings (drop-while string? forms)))
+          (concat (take-while (comp not string?) forms)
+                  (coalesce-strings (drop-while (comp not string?) forms))))))))
 
 (defvar- html-builder-sym 'html-builder
   "Symbol used for the local variable holding the StringBuilder that collects
