@@ -9,57 +9,56 @@ A Clojure library for expanding expressive markup templates into efficient code,
 h3. Examples
 
 A simple template:
-<pre><code>
-(html
-  [:body [:div#content "Hello World"]])
 
-; expands to:
-(let* [html-builder (StringBuilder.)] 
-  (.append html-builder "<body><div id=\"content\">Hello World</div></body>") 
-  (.toString html-builder))
-
-;evaluates to:
-"<body><div id=\"content\">Hello World</div></body>"
-</code></pre>
-
-A template with non-literal values:
-<code><pre>
-(html
-  [:body
-    [:div#content
-      [:h1.greeting greeting]
-      [:p.message message]]]))
-      
-; expands to:
-(let* [html-builder (StringBuilder.)] 
-  (.append html-builder "<body><div id=\"content\"><h1 class=\"greeting\">") 
-  (if-let [content__148 greeting] (.append html-builder content__148)) 
-  (.append html-builder "</h1><p class=\"message\">") 
-  (if-let [content__148 message] (.append html-builder content__148)) 
-  (.append html-builder "</p></div></body>") 
-  (.toString html-builder))
-
-; evaluates to (with greeting bound to "Hello" and message to "from clj-html"):
-"<body><div id=\"content\"> \
- <h1 class=\"greeting\">Hello</h1> \
- <p class=\"message\">from clj-html</p> \
- </div></body>"
- </code></pre>
+  (html
+    [:body [:div#content "Hello World"]])
+  
+  ; expands to:
+  (let* [html-builder (StringBuilder.)] 
+    (.append html-builder "<body><div id=\"content\">Hello World</div></body>") 
+    (.toString html-builder))
+  
+  ;evaluates to:
+  "<body><div id=\"content\">Hello World</div></body>"
+  </code></pre>
+  
+  A template with non-literal values:
+  <code><pre>
+  (html
+    [:body
+      [:div#content
+        [:h1.greeting greeting]
+        [:p.message message]]]))
+        
+  ; expands to:
+  (let* [html-builder (StringBuilder.)] 
+    (.append html-builder "<body><div id=\"content\"><h1 class=\"greeting\">") 
+    (if-let [content__148 greeting] (.append html-builder content__148)) 
+    (.append html-builder "</h1><p class=\"message\">") 
+    (if-let [content__148 message] (.append html-builder content__148)) 
+    (.append html-builder "</p></div></body>") 
+    (.toString html-builder))
+  
+  ; evaluates to (with greeting bound to "Hello" and message to "from clj-html"):
+  "<body><div id=\"content\"> \
+   <h1 class=\"greeting\">Hello</h1> \
+   <p class=\"message\">from clj-html</p> \
+   </div></body>"
+   </code></pre>
 
 A more involved template:
-<pre><code>
-(html
-  [:body
-    [:div#examples
-      [:p.string "foo"]
-      [:p.literal 3]
-      [:p.expression (str "clj" "-" "html")]
-      [:ul#sequence
-        (domap-str [char '(a b c)]
-          (html [:li char]))]]])
 
-; expansion omitted, evaluation as expected.
-</code></pre>
+  (html
+    [:body
+      [:div#examples
+        [:p.string "foo"]
+        [:p.literal 3]
+        [:p.expression (str "clj" "-" "html")]
+        [:ul#sequence
+          (domap-str [char '(a b c)]
+            (html [:li char]))]]])
+  
+  ; expansion omitted, evaluation as expected.
 
 h3. Details - Core
 
@@ -83,53 +82,46 @@ h3. Details - Utils
 
 The function @map-str@ is the usual @map@ with a call to @(apply str ...)@ in front. This is useful for rendering a sub-template for each element of a collection:
 
-<pre><code>
-(defn person-template [person]
+  (defn person-template [person]
+    (html
+      [:div.person {:id (:id person)}
+        [:p.name (:name person)]
+        [:p.city (:city person)]]))
+  
   (html
-    [:div.person {:id (:id person)}
-      [:p.name (:name person)]
-      [:p.city (:city person)]]))
-
-(html
-  [:div#people
-    (map-str person-template people)])
-</code></pre> 
+    [:div#people
+      (map-str person-template people)])
 
 The macro @domap-str@ is useful for rendering an inline snippet for each element of a collection. @domap-str@ has semantics like @map-str@ and a syntax like @doseq@. Note that since the @html@ macro does not reach within code, if you need to use the literal vector syntax within a @domap-str@ body you will need to use @html@ again.
 
-<pre><code>
-(html
-  [:div#people
-    (domap-str [person people]
-      (html [:div.person {:id (:uid person)}
-              [:p.name (:name person)]
-              [:p.city (:city person)]]))])
-</code></pre>
+  (html
+    [:div#people
+      (domap-str [person people]
+        (html [:div.person {:id (:uid person)}
+                [:p.name (:name person)]
+                [:p.city (:city person)]]))])
 
 Also included are several methods of the form @*-html*@. These are designed to reduce the need for eg:
-<pre><code>
-(html
-  [:div
-    (when urgent 
-      (html
-        [:h3 "Urgent!"]))])
 
-; with when-html becomes
-(html
-  [:div
-    (when-html urgent
-      [:h3 "Urgent!"])])
-</code></pre>
+  (html
+    [:div
+      (when urgent 
+        (html
+          [:h3 "Urgent!"]))])
+  
+  ; with when-html becomes
+  (html
+    [:div
+      (when-html urgent
+        [:h3 "Urgent!"])])
 
 Currently we have @if-html@, @when-html@, @when-let-html@, and @for-html@.
 
 Finally, you can use @defhtml@ to define methods that are html templates without needing to include the outer @html@ manually:
 
-<pre><code>
-(defhtml message [text]
-  [:div#message
-    [:p.text text]])
-</code></pre>
+  (defhtml message [text]
+    [:div#message
+      [:p.text text]])
 
 h3. Dependencies
 
