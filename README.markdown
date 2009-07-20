@@ -22,8 +22,8 @@ A simple template:
     "<body><div id=\"content\">Hello World</div></body>"
     </code></pre>
     
-    A template with non-literal values:
-    <code><pre>
+A template with non-literal values:
+
     (html
       [:body
         [:div#content
