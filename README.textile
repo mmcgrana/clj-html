@@ -4,10 +4,7 @@ h2. clj-html
 
 h3. Overview
 
-A Clojure library for expanding expressive markup templates into efficient code,
-drawing on the functional interface and markup syntax of "compojure's html 
-library":http://github.com/weavejester/compojure/tree/master and the compilation
- approach of "cl-who":http://www.weitz.de/cl-who/.
+A Clojure library for expanding expressive markup templates into efficient code, drawing on the functional interface and markup syntax of "compojure's html  library":http://github.com/weavejester/compojure/tree/master and the compilation approach of "cl-who":http://www.weitz.de/cl-who/.
 
 h3. Examples
 
@@ -74,11 +71,9 @@ A vector with a keyword as its first element will be treated as markup tag  synt
 
 The second element in the vector is an optional literal map of additional attributes to add to the tag (@[:link {:rel "stylesheet" :href "style.css"}]@). The keys must be literal keywords, though the values can be either literal values or expressions to be computed during evaluation. If the value for a key is logically false, no text is added for that key/value pair. If the value is  equal to @true@ then the @"attrname=\"attrname\""@ convention is used.
 
-The remaining values in the tag vector are considered the inner content of the 
-tag and are expanded recursively.
+The remaining values in the tag vector are considered the inner content of the  tag and are expanded recursively.
 
-If no inner forms are given (@[:br]@]) then the tag that is created 
-is self-closing (@<br />@). Otherwise a wrapping tag is created.
+If no inner forms are given (@[:br]@]) then the tag that is created is self-closing (@<br />@). Otherwise a wrapping tag is created.
 
 @clj-html.core@ also includes the @htmli@, accepts very similar arguments to @html@ but operates as an interpreter instead of a compiler.  For a discussion of the tradeoffs between these two, see "this Gist":http://gist.github.com/45136.
 
@@ -100,12 +95,7 @@ The function @map-str@ is the usual @map@ with a call to @(apply str ...)@ in fr
     (map-str person-template people)])
 </code></pre> 
 
-The macro @domap-str@ is useful for rendering an inline snippet for 
-each element of a collection. @domap-str@ has semantics like 
-@map-str@ and a syntax like @doseq@. Note that since the 
-@html@ macro does not reach within code, if you need to use the 
-literal vector syntax within a @domap-str@ body you will need to use 
-@html@ again.
+The macro @domap-str@ is useful for rendering an inline snippet for each element of a collection. @domap-str@ has semantics like @map-str@ and a syntax like @doseq@. Note that since the @html@ macro does not reach within code, if you need to use the literal vector syntax within a @domap-str@ body you will need to use @html@ again.
 
 <pre><code>
 (html
