@@ -54,16 +54,16 @@
   [:p (+ 1 2)])
 
 (test-html
-  "<div><p>bar</p><p>biz</p></div>"
+  "<div><p>bar</p><p>bat</p><p>biz</p></div>"
   [:div
     [:p "bar"]
-    (if false (html [:p "bat"]))
+    (if true (html [:p "bat"]))
     [:p "biz"]])
 (test-htmli
-  "<div><p>bar</p><p>biz</p></div>"
+  "<div><p>bar</p><p>bat</p><p>biz</p></div>"
   [:div
     [:p "bar"]
-    (if false [:p "bat"])
+    (if true [:p "bat"])
     [:p "biz"]])
 
 (test-htmlb
