@@ -4,7 +4,7 @@
         [clojure.contrib.except    :only (throwf)])
   (:load "core_utils"))
 
-;; Shared by the Compiler and Interpreter
+;; Shared by the Interpreter and Compiler
 
 (defvar- tag+-lexer #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?"
   "Lexer for parsing ids and classes out of tag+s")
@@ -37,6 +37,50 @@
       (StringBuilder.)
       attrs)))
 
+
+;; Interpreter
+
+(defn- closing-tag+
+  "Returns an html snippet of a self-closing tag acording to the given tag+
+  String and the optionally given attrs Map."
+  [tag+ attrs]
+  (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
+    (str "<" tag (attrs-props tag-attrs) (attrs-props attrs) " />")))
+
+(defn- wrapping-tag+
+  "Returns an html snippet of a self-closing tag acording to the given tag+
+  String, inner content String, and optionally the given attrs Map."
+  [tag+ attrs inner]
+  (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
+    (str "<" tag (attrs-props tag-attrs) (attrs-props attrs) ">"
+         inner "</" tag ">")))
+
+(defn- htmli*
+  "Interpret the elem, returning the corresponding string of html."
+  [elem]
+  (cond
+    (vector? elem)
+      (let [tag+        (name (first elem))
+            tag-args    (next elem)
+            maybe-attrs (first tag-args)]
+        (if (nil? maybe-attrs)
+          (closing-tag+ tag+ {})
+          (if (map? maybe-attrs)
+            (if-let [body (next tag-args)]
+              (wrapping-tag+ tag+ maybe-attrs (htmli* body))
+              (closing-tag+ tag+ maybe-attrs))
+            (wrapping-tag+ tag+ {} (htmli* tag-args)))))
+    (seq? elem)
+      (apply str (map htmli* elem))
+    :else
+      (str elem)))
+
+(defn htmli
+  "Returns a string corresponding to the rendered elems."
+  [& elems]
+  (htmli* elems))
+
+
 ;; Compiler
 
 (defn- literal?
@@ -44,19 +88,22 @@
   [form]
   (or (string? form)
       (keyword? form)
+      (symbol? form)
       (number? form)
       (contains? #{nil false true} form)))
 
 (defn- prepare-tag+-info
-  "Returns a tuple of [tag lit-attrs-str sorted-dyn-attrs] corresponding to the
+  "Returns a tuple of [tag lit-attrs-str dyn-attrs] corresponding to the
   given tag+ String and given-attrs Map."
   [tag+ given-attrs]
   (let [[tag-str tag-attrs]     (parse-tag+-attrs tag+)
          attrs                  (merge tag-attrs given-attrs)
-         [lit-attrs dyn-attrs]  (separate-map #(literal? (second %)) attrs)
-         lit-attrs-str          (attrs-props (sort lit-attrs))
-         sorted-dyn-attrs       (sort-by first dyn-attrs)]
-    [tag-str lit-attrs-str sorted-dyn-attrs]))
+         [lit-attrs dyn-attrs]  (separate-map
+                                  #(and (literal? (first %))
+                                        (literal? (second %)))
+                                  attrs)
+         lit-attrs-str          (attrs-props lit-attrs)]
+    [tag-str lit-attrs-str dyn-attrs]))
 
 (defn- expand-closing-tag+
   "Returns flat list of forms to evaluate and append to render a closing tag."
@@ -102,7 +149,7 @@
 (defn- expand-tree [tree]
   "Returns a flat list of forms to evaualte and append to render a tree."
   (cond
-    (or (not (coll? tree)) (list? tree) (instance? clojure.lang.Cons tree))
+    (or (literal? tree) (list? tree) (instance? clojure.lang.Cons tree))
       (list tree)
     (and (vector? tree) (keyword? (first tree)))
       (expand-tag+-tree tree)
@@ -130,9 +177,15 @@
   "If content is a seq, recursively flattens it into a single string. Otherwise
   returns it."
   [content]
-  (if (seq? content)
-    (apply str (map flatten-content content))
-    content))
+  (cond
+    (vector? content)
+      (htmli* content)
+    (seq? content)
+      (apply str (map flatten-content content))
+    (literal? content)
+      content
+    :else
+      (throwf (str "Compilation produced non-literal element: " content))))
 
 (defn- append-code
   "Expands the given form into one that will append the result of evaluating
@@ -151,52 +204,7 @@
      ~@(map append-code (compact (coalesce-strings (mapcat expand-tree trees))))
      (.toString ~html-builder-sym)))
 
-
-;; Interpreter
-
-(defn- merge-attrs
-  "Combine the tag-attrs and attrs by sorting the merged pairs by name so
-  that the output is deterministic."
-  [tag-attrs attrs]
-  (sort-by first (merge tag-attrs attrs)))
-
-(defn- closing-tag+
-  "Returns an html snippet of a self-closing tag acording to the given tag+
-  String and the optionally given attrs Map (which need not be sorted)."
-  [tag+ attrs]
-  (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
-    (str "<" tag (attrs-props (merge-attrs tag-attrs attrs)) " />")))
-
-(defn- wrapping-tag+
-  "Returns an html snippet of a self-closing tag acording to the given tag+
-  String, inner content String, and optionally the given attrs Map (which need
-  not be sorted)."
-  [tag+ attrs inner]
-  (let [[tag tag-attrs] (parse-tag+-attrs tag+)]
-    (str "<" tag (attrs-props (merge-attrs tag-attrs attrs)) ">"
-         inner "</" tag ">")))
-
-(defn- htmli*
-  "Interpret the elem, returning the corresponding string of html."
-  [elem]
-  (cond
-    (vector? elem)
-      (let [tag+        (name (first elem))
-            tag-args    (next elem)
-            maybe-attrs (first tag-args)]
-        (if (nil? maybe-attrs)
-          (closing-tag+ tag+ {})
-          (if (map? maybe-attrs)
-            (if-let [body (next tag-args)]
-              (wrapping-tag+ tag+ maybe-attrs (htmli* body))
-              (closing-tag+ tag+ maybe-attrs))
-            (wrapping-tag+ tag+ {} (htmli* tag-args)))))
-    (seq? elem)
-      (apply str (map htmli* elem))
-    :else
-      (str elem)))
-
-(defn htmli
-  "Returns a string corresponding to the rendered elems."
-  [& elems]
-  (htmli* elems))
+(defmacro defhtml
+  "Define a function that uses the html macro to render a template."
+  [name args & body]
+  `(defn ~name ~args (html ~@body)))

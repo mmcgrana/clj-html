@@ -1,55 +1,44 @@
 (ns clj-html.core-test
-  (:use
-    clj-unit.core
-    (clj-html [core :only (html htmli)] utils)))
+  (:use (clj-unit core)
+        (clj-html [core :only (html htmli defhtml)])))
 
-(defmacro test-name [operator expected-html]
-  `(apply str ~operator ": " (take 15 ~expected-html)))
+(defmacro test-html-with
+  [label form expected-html]
+  `(deftest ~label
+     ((if (set? ~expected-html) assert-in assert=)
+        ~expected-html
+        ~form)))
 
-(defmacro test-html
-  [expected-html & body]
-  `(deftest (test-name "html" ~expected-html)
-     (assert= ~expected-html (html ~@body))))
-
-(defmacro test-htmli
-  [expected-html & body]
-  `(deftest (test-name "htmli" ~expected-html)
-     (assert= ~expected-html (htmli ~@body))))
-
-(defmacro test-htmlb
-  [expected-html & body]
+(defmacro test-html [expected-html & body]
   `(do
-     (test-html ~expected-html ~@body)
-     (test-htmli ~expected-html ~@body)))
+     (test-html-with "html"  (html ~@body)  ~expected-html)
+     (test-html-with "htmli" (htmli ~@body) ~expected-html)))
 
-(test-htmlb
+(test-html
   "<br />"
   [:br])
 
-(test-htmlb
-  "<br class=\"bar\" id=\"foo\" />"
+(test-html
+  #{"<br id=\"foo\" class=\"bar\" />" "<br class=\"bar\" id=\"foo\" />"}
   [:br#foo.bar])
 
-(test-htmlb
+(test-html
   "<br class=\"foo bar bat\" />"
   [:br.foo.bar.bat])
 
 (test-html
   "<br id=\"foo\" class=\"bar\" />"
   [:br#foo {:class (str "b" "ar")}])
-(test-htmli
-  "<br class=\"bar\" id=\"foo\" />"
-  [:br#foo {:class (str "b" "ar")}])
 
-(test-htmlb
+(test-html
   "<p>inner</p>"
   [:p "inner"])
 
-(test-htmlb
+(test-html
   "<p>3</p>"
   [:p 3])
 
-(test-htmlb
+(test-html
   "<p>3</p>"
   [:p (+ 1 2)])
 
@@ -57,63 +46,55 @@
   "<div><p>bar</p><p>bat</p><p>biz</p></div>"
   [:div
     [:p "bar"]
-    (if true (html [:p "bat"]))
-    [:p "biz"]])
-(test-htmli
-  "<div><p>bar</p><p>bat</p><p>biz</p></div>"
-  [:div
-    [:p "bar"]
     (if true [:p "bat"])
     [:p "biz"]])
 
-(test-htmlb
-  "<p class=\"bar\" id=\"foo\">inner</p>"
+(test-html
+  "<div><p>bar</p><p>bat</p><p>biz</p></div>"
+  [:div
+    [:p "bar"]
+    (if true (first (list [:p "bat"])))
+    [:p "biz"]])
+
+(test-html
+  #{"<p class=\"bar\" id=\"foo\">inner</p>"
+    "<p id=\"foo\" class=\"bar\">inner</p>"}
   [:p#foo.bar "inner"])
 
 (test-html
   "<p id=\"foo\" class=\"bar\">inner</p>"
   [:p#foo {:class (str "b" "ar")} "inner"])
-(test-htmli
-  "<p class=\"bar\" id=\"foo\">inner</p>"
-  [:p#foo {:class (str "b" "ar")} "inner"])
 
-(test-htmlb
+(test-html
   "<p id=\"foo\">inner</p>"
   [:p#foo {:class nil} "inner"])
 
-(test-htmlb
+(test-html
   "<p id=\"foo\">inner</p>"
   [:p#foo {:class false} "inner"])
 
-(test-htmlb
+(test-html
   "<p id=\"foo\">inner</p>"
   [:p#foo {:class (if false "bar")} "inner"])
 
-(test-htmlb
+(test-html
   "<p id=\"foo\">inner</p>"
   [:p#foo {:class (number? "bar")} "inner"])
 
-(test-htmlb
-  "<p attr=\"attr\" id=\"foo\">inner</p>"
+(test-html
+  #{"<p attr=\"attr\" id=\"foo\">inner</p>"
+    "<p id=\"foo\" attr=\"attr\">inner</p>"}
   [:p#foo {:attr true} "inner"])
 
 (test-html
   "<p id=\"foo\" attr=\"attr\">inner</p>"
   [:p#foo {:attr (number? 3)} "inner"])
-(test-htmli
-  "<p attr=\"attr\" id=\"foo\">inner</p>"
-  [:p#foo {:attr (number? 3)} "inner"])
 
 (test-html
-  "<br a=\"one\" d=\"four\" b=\"two\" c=\"three\" e=\"five\" />"
-  [:br {:a "one" :b (str "tw" "o") :c (str "thr" "ee")
-        :d "four" :e (str "fi" "ve")}])
-(test-htmli
-  "<br a=\"one\" b=\"two\" c=\"three\" d=\"four\" e=\"five\" />"
-  [:br {:a "one" :b (str "tw" "o") :c (str "thr" "ee")
-        :d "four" :e (str "fi" "ve")}])
+  "<br a=\"one\" b=\"two\" />"
+  [:br {:a "one" :b (str "tw" "o")}])
 
-(test-htmlb
+(test-html
   "<body><div id=\"c\">cont</div><div id=\"f\">foot</div></body>"
   [:body
     [:div#c "cont"]
@@ -127,7 +108,8 @@
       (for [n [1 2]]
         (html [:p char n])))
     [:p "low"]])
-(test-htmli
+
+(test-html
   "<div><p>high</p><p>a1</p><p>a2</p><p>b1</p><p>b2</p><p>c1</p><p>c2</p><p>low</p></div>"
   [:div
     [:p "high"]
@@ -136,6 +118,21 @@
         [:p char n]))
     [:p "low"]])
 
+(test-html
+  "<div foo-bar=\"foo-bar\"><p>inner</p></div>"
+  [:div {(keyword (str "foo" "-" "bar")) true}
+    [:p "inner"]])
+
+(deftest "htmli: dynamic attrs map without inner"
+  (assert=
+    "<br id=\"foo\" />"
+    (htmli [:br (hash-map :id "foo")])))
+
+(deftest "htmli: dynamic attrs map with inner"
+  (assert=
+    "<div id=\"foo\"><p>inner</p></div>"
+    (htmli [:div (hash-map :id "foo") [:p "inner"]])))
+
 (defmacro macro-test-helper
   [form]
   `(html (.toUpperCase ~form)))
@@ -143,3 +140,7 @@
 (test-html
   "INNER"
   (macro-test-helper "inner"))
+
+(deftest "defhtml"
+  (defhtml foo [inner] [:div {:num (+ 1 2)} inner])
+  (assert= "<div num=\"3\">text</div>" (foo "text")))

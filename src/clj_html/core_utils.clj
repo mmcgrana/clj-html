@@ -23,12 +23,3 @@
   "Returns a lazy seq corresponding to the given coll, without nil values"
   [coll]
   (filter #(not (= % nil)) coll))
-
-(defn- flatten1
-  "Returns a seq for coll that has been flattened 1 level deep."
-  [coll]
-  (if-let [coll-seq (seq coll)]
-    (lazy-seq
-      (if (seq? (first coll-seq))
-        (concat (first coll-seq) (flatten1 (rest coll-seq)))
-        (cons   (first coll-seq) (flatten1 (rest coll-seq)))))))
