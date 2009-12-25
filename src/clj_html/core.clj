@@ -126,6 +126,14 @@
   "Symbol used for the local variable holding the StringBuilder that collects
   html output.")
 
+(defn flatten-content
+  "If content is a seq, recursively flattens it into a single string. Otherwise
+  returns it."
+  [content]
+  (if (seq? content)
+    (apply str (map flatten-content content))
+    content))
+
 (defn- append-code
   "Expands the given form into one that will append the result of evaluating
   the form to the html-builder. Code is added as neccessary to ensure that forms
@@ -133,7 +141,8 @@
   [form]
   (if (literal? form)
     `(.append ~html-builder-sym ~form)
-    `(if-let [content# ~form] (.append ~html-builder-sym content#))))
+    `(if-let [content# ~form]
+       (.append ~html-builder-sym (flatten-content content#)))))
 
 (defmacro html
   "Expands into forms that render the html in an efficient manner."
@@ -168,6 +177,7 @@
          inner "</" tag ">")))
 
 (defn- htmli*
+  "Interpret the elem, returning the corresponding string of html."
   [elem]
   (cond
     (vector? elem)

@@ -68,34 +68,42 @@ The remaining values in the tag vector are considered the inner content of the  
 
 If no inner forms are given (`[:br]`]) then the tag that is created is self-closing (`<br />`). Otherwise a wrapping tag is created.
 
-`clj-html.core` also includes the `htmli`, accepts very similar arguments to `html` but operates as an interpreter instead of a compiler.  For a discussion of the tradeoffs between these two, see [this Gist](http://gist.github.com/45136).
+Finally, note that `html` expects anything in tag bodies to evaluate to either a string or a seq of strings. Thus the following are valid:
+
+   (html
+     (for [n '(1 2 3)]
+       (html [:p n])))
+    
+    (html
+      [:div
+        (when pred?
+          (html [:p "text"]))])
+
+But these will not render with `html`:
+
+    (html
+       (for [n [1 2 3]]
+          [:p n]))
+    
+    (html
+      [:div
+        (when pred?
+          [:p "text"])])
+
+
+`clj-html.core` also includes the `htmli` function, accepts very similar arguments to `html` but operates as an interpreter instead of a compiler.  This gives slightly more flexibility at the cost of increased rendering time. For example, both of the above examples that would fail with `html` will render with `htmli`.
 
 Details - Utils
 ---------------
 
-`clj-html.utils` provides general helper methods that are useful for a variety of templating tasks, mostly for use with the `html` macro.
+`clj-html.utils` provides a few general helper functions for use with the `html` macro.
 
-The function `map-str` is the usual `map` with a call to `(apply str ...)` in front. This is useful for rendering a sub-template for each element of a collection:
+`defhtml` allows you to define functions that are html templates without needing to include the outer `html` manually:
 
-    (defn person-template [person]
-      (html
-        [:div.person {:id (:id person)}
-          [:p.name (:name person)]
-          [:p.city (:city person)]]))
-    
-    (html
-      [:div#people
-        (map-str person-template people)])
-
-The macro `domap-str` is useful for rendering an inline snippet for each element of a collection. `domap-str` has semantics like `map-str` and a syntax like `doseq`. Note that since the @html@ macro does not reach within code, if you need to use the literal vector syntax within a `domap-str` body you will need to use `html` again.
-
-    (html
-      [:div#people
-        (domap-str [person people]
-          (html [:div.person {:id (:uid person)}
-                  [:p.name (:name person)]
-                  [:p.city (:city person)]]))])
-
+    (defhtml message [text]
+      [:div#message
+        [:p.text text]])
+        
 Also included are several methods of the form `*-html`. These are designed to reduce the need for eg:
 
     (html
@@ -103,27 +111,15 @@ Also included are several methods of the form `*-html`. These are designed to re
         (when urgent 
           (html
             [:h3 "Urgent!"]))])
-    
-    ; with when-html becomes
+
+With `when-html`, this becomes:
+
     (html
       [:div
         (when-html urgent
           [:h3 "Urgent!"])])
 
-Currently we have `if-html`, `when-html`, `when-let-html`, and `for-html`.
-
-Finally, you can use `defhtml` to define methods that are html templates without needing to include the outer `html` manually:
-
-    (defhtml message [text]
-      [:div#message
-        [:p.text text]])
-
-Dependencies
-------------
-
-Include recent versions of Clojure and Clojure Contrib in your classpath.
-
-The test suite uses `clj-unit`, though you won't need to use the library in general.
+Currently we have `if-html`, `when-html`, `when-let-html`.
 
 License
 -------

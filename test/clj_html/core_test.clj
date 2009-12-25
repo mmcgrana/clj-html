@@ -113,25 +113,27 @@
   [:br {:a "one" :b (str "tw" "o") :c (str "thr" "ee")
         :d "four" :e (str "fi" "ve")}])
 
-(test-html
+(test-htmlb
   "<body><div id=\"c\">cont</div><div id=\"f\">foot</div></body>"
   [:body
     [:div#c "cont"]
     [:div#f "foot"]])
 
 (test-html
-  "<div><p>high</p><p>a</p><p>b</p><p>c</p><p>low</p></div>"
-  [:div
-    [:p "high"]
-    (domap-str [char '(a b c)]
-      (html [:p char]))
-    [:p "low"]])
-(test-htmli
-  "<div><p>high</p><p>a</p><p>b</p><p>c</p><p>low</p></div>"
+  "<div><p>high</p><p>a1</p><p>a2</p><p>b1</p><p>b2</p><p>c1</p><p>c2</p><p>low</p></div>"
   [:div
     [:p "high"]
     (for [char '(a b c)]
-      [:p char])
+      (for [n [1 2]]
+        (html [:p char n])))
+    [:p "low"]])
+(test-htmli
+  "<div><p>high</p><p>a1</p><p>a2</p><p>b1</p><p>b2</p><p>c1</p><p>c2</p><p>low</p></div>"
+  [:div
+    [:p "high"]
+    (for [char '(a b c)]
+      (for [n [1 2]]
+        [:p char n]))
     [:p "low"]])
 
 (defmacro macro-test-helper
