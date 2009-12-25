@@ -167,32 +167,26 @@
     (str "<" tag (attrs-props (merge-attrs tag-attrs attrs)) ">"
          inner "</" tag ">")))
 
-(defvar- html-trees)
-
-(defn- html-tree
-  "Returns a snippet of html corresponding to the given tree."
-  [tree]
-  (if (vector? tree)
-    (let [tree-seq    (seq tree)
-          tag+        (name (first tree-seq))
-          tree-rest   (next tree-seq)
-          maybe-attrs (first tree-rest)]
-      (if (nil? maybe-attrs)
-        (closing-tag+ tag+ {})
-        (if (map? maybe-attrs)
-          (if-let [body (next tree-rest)]
-            (wrapping-tag+ tag+ maybe-attrs (html-trees body))
-            (closing-tag+ tag+ maybe-attrs))
-          (wrapping-tag+ tag+ {} (html-trees tree-rest)))))
-    (str tree)))
-
-(defn- html-trees
-  "Returns a snippet of html corresponding to the given trees, for which
-  we flatten sequences 1 level deep to allow for easy loop rendering."
-  [trees]
-  (apply str (map html-tree (flatten1 trees))))
+(defn- htmli*
+  [elem]
+  (cond
+    (vector? elem)
+      (let [tag+        (name (first elem))
+            tag-args    (next elem)
+            maybe-attrs (first tag-args)]
+        (if (nil? maybe-attrs)
+          (closing-tag+ tag+ {})
+          (if (map? maybe-attrs)
+            (if-let [body (next tag-args)]
+              (wrapping-tag+ tag+ maybe-attrs (htmli* body))
+              (closing-tag+ tag+ maybe-attrs))
+            (wrapping-tag+ tag+ {} (htmli* tag-args)))))
+    (seq? elem)
+      (apply str (map htmli* elem))
+    :else
+      (str elem)))
 
 (defn htmli
-  "Returns a string corresponding to the rendered trees."
-  [& trees]
-  (html-trees trees))
+  "Returns a string corresponding to the rendered elems."
+  [& elems]
+  (htmli* elems))
