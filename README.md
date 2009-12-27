@@ -24,7 +24,7 @@ A template with sequences:
 
     (html
       [:ul {:type "letters"}
-        (for [char '(a b c)]
+        (for [char '("a" "b" "c")]
           [:li char])])
     
     "<ul type=\"letters\"><li>a</li><li>b</li><li>c</li></ul>"

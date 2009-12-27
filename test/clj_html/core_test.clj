@@ -39,6 +39,14 @@
   [:p 3])
 
 (test-html
+  "<p></p>"
+  [:p ""])
+
+(test-html
+  "<p class=\"foo\"></p>"
+  [:p {:class "foo"} ""])
+
+(test-html
   "<p>3</p>"
   [:p (+ 1 2)])
 
@@ -104,7 +112,7 @@
   "<div><p>high</p><p>a1</p><p>a2</p><p>b1</p><p>b2</p><p>c1</p><p>c2</p><p>low</p></div>"
   [:div
     [:p "high"]
-    (for [char '(a b c)]
+    (for [char '("a" "b" "c")]
       (for [n [1 2]]
         (html [:p char n])))
     [:p "low"]])
@@ -113,7 +121,7 @@
   "<div><p>high</p><p>a1</p><p>a2</p><p>b1</p><p>b2</p><p>c1</p><p>c2</p><p>low</p></div>"
   [:div
     [:p "high"]
-    (for [char '(a b c)]
+    (for [char '("a" "b" "c")]
       (for [n [1 2]]
         [:p char n]))
     [:p "low"]])
@@ -122,6 +130,14 @@
   "<div foo-bar=\"foo-bar\"><p>inner</p></div>"
   [:div {(keyword (str "foo" "-" "bar")) true}
     [:p "inner"]])
+
+(deftest "html: non-nil variables"
+  (let [v 3]
+    (assert= "<p>3</p>" (html [:p v]))))
+
+(deftest "html: nil variables"
+  (let [v nil]
+    (assert= "<p></p>" (html [:p v]))))
 
 (deftest "htmli: dynamic attrs map without inner"
   (assert=

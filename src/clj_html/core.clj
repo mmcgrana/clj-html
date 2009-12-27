@@ -88,7 +88,6 @@
   [form]
   (or (string? form)
       (keyword? form)
-      (symbol? form)
       (number? form)
       (contains? #{nil false true} form)))
 
@@ -153,6 +152,8 @@
       (list tree)
     (and (vector? tree) (keyword? (first tree)))
       (expand-tag+-tree tree)
+    (symbol? tree)
+      (list tree)
     :else
       (throwf "Unrecognized form %s, was a %s" tree (class tree))))
 
