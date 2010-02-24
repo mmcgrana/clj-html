@@ -67,4 +67,4 @@ This will render correctly only with `htmli` because the attrs map is not litera
 License
 -------
 
-Copyright 2009 Mark McGranaghan and released under an MIT license.
+Copyright 2009-2010 Mark McGranaghan and released under an MIT license.
