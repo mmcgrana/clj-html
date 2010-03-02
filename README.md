@@ -1,9 +1,11 @@
-`clj-html` is a Clojure library for expanding expressive HTML templates into efficient code.
+# clj-htm
 
-Examples
---------
+A Clojure library for expanding expressive HTML templates into efficient code.
 
-A basic template:
+## Examples
+
+A basic template
+
     (use 'clj-html.core)
     
     (html
@@ -38,8 +40,7 @@ A named template:
     
     "<h3>Heading</h3>"
 
-Details
--------
+## Details
 
 The primary entry point into the `clj-html.core` library is the macro `html`, which expands into code that will render the given template, returning a string. `html` accepts a vararg list of forms, each of which will be expanded according to the following rules:
 
@@ -64,7 +65,6 @@ Finally, note that `html` expects anything in tag bodies to evaluate to either a
 This will render correctly only with `htmli` because the attrs map is not literal, i.e. it is produced by a dynamic call to `merge`.
 
 
-License
--------
+## License
 
 Copyright 2009-2010 Mark McGranaghan and released under an MIT license.
