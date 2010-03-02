@@ -1,13 +1,18 @@
 (ns clj-html.core-test
-  (:use (clj-unit core)
+  (:use clojure.test
         (clj-html [core :only (html htmli defhtml)])))
+
+(defn- in? [coll elem]
+  (contains? (set coll) elem))
 
 (defmacro test-html-with
   [label form expected-html]
-  `(deftest ~label
-     ((if (set? ~expected-html) assert-in assert=)
-        ~expected-html
-        ~form)))
+  (let [label-sym (gensym label)]
+    `(deftest ~label-sym
+       (is (
+         (if (set? ~expected-html) in? =)
+         ~expected-html
+         ~form)))))
 
 (defmacro test-html [expected-html & body]
   `(do
@@ -131,23 +136,23 @@
   [:div {(keyword (str "foo" "-" "bar")) true}
     [:p "inner"]])
 
-(deftest "html: non-nil variables"
+(deftest test-html-non-nil-variables
   (let [v 3]
-    (assert= "<p>3</p>" (html [:p v]))))
+    (is (= "<p>3</p>" (html [:p v])))))
 
-(deftest "html: nil variables"
+(deftest test-html-nil-variables
   (let [v nil]
-    (assert= "<p></p>" (html [:p v]))))
+    (is (= "<p></p>" (html [:p v])))))
 
-(deftest "htmli: dynamic attrs map without inner"
-  (assert=
+(deftest test-html-dynamic-attrs-map-without-inner
+  (is (=
     "<br id=\"foo\" />"
-    (htmli [:br (hash-map :id "foo")])))
+    (htmli [:br (hash-map :id "foo")]))))
 
-(deftest "htmli: dynamic attrs map with inner"
-  (assert=
+(deftest test-htmli-dynamic-attrs-map-with-inner
+  (is (=
     "<div id=\"foo\"><p>inner</p></div>"
-    (htmli [:div (hash-map :id "foo") [:p "inner"]])))
+    (htmli [:div (hash-map :id "foo") [:p "inner"]]))))
 
 (defmacro macro-test-helper
   [form]
@@ -157,6 +162,6 @@
   "INNER"
   (macro-test-helper "inner"))
 
-(deftest "defhtml"
+(deftest test-defhtml
   (defhtml foo [inner] [:div {:num (+ 1 2)} inner])
-  (assert= "<div num=\"3\">text</div>" (foo "text")))
+  (is (= "<div num=\"3\">text</div>" (foo "text"))))
