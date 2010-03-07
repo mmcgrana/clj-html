@@ -3,4 +3,4 @@
   :url "http://github.com/mmcgrana/clj-html"
   :dependencies [[org.clojure/clojure "1.1.0"]
                  [org.clojure/clojure-contrib "1.1.0"]]
-  :dev-dependencies [[lein-clojars "0.5.0-SNAPSHOT"]])
+  :dev-dependencies [[org.clojars.mmcgrana/lein-clojars "0.5.0"]])
