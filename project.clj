@@ -1,4 +1,4 @@
-(defproject clj-html "0.1.0-SNAPSHOT"
+(defproject clj-html "0.1.0"
   :description "A Clojure library for expanding expressive HTML templates into efficient code."
   :url "http://github.com/mmcgrana/clj-html"
   :dependencies [[org.clojure/clojure "1.1.0"]
