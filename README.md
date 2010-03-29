@@ -1,6 +1,10 @@
-# clj-htm
+# clj-html
 
 A Clojure library for expanding expressive HTML templates into efficient code.
+
+## Notice
+
+The `clj-html` library is being deprecated in favor of [Hiccup](http://github.com/weavejester/hiccup). Hiccup implements essentially the same interface as `clj-html`, but uses a more advanced compiler/interpreter, handles certain markup edge cases better, and offers a more complete suite of helpers. The `clj-html` project will remain online through August 2010, but will not be updated.
 
 ## Examples
 
